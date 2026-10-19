@@ -268,29 +268,6 @@
 				</section>
 			</div>
 
-			<section class="card parameter-card" aria-labelledby="h-parameters">
-				<h2 id="h-parameters">Configuración de parámetros</h2>
-				<form id="parameters-form" class="parameter-form">
-					<div class="parameter-fields">
-						<div class="parameter-field">
-							<label for="capacity-input">Capacidad de batería (Wh)</label>
-							<input id="capacity-input" type="number" min="1" max="100000" step="1" value="60" required />
-						</div>
-						<div class="parameter-field">
-							<label for="threshold-input">Umbral para activar ahorro (%)</label>
-							<input id="threshold-input" type="number" min="0" max="100" step="1" value="40" required />
-						</div>
-						<div class="parameter-field">
-							<label for="emergency-threshold-input">Umbral para activar emergencia (%)</label>
-							<input id="emergency-threshold-input" type="number" min="0" max="99" step="1" value="10" required />
-						</div>
-					</div>
-					<div class="parameter-actions">
-						<button class="action-button" type="submit">Guardar parámetros</button>
-						<p id="parameters-result" class="note" aria-live="polite">Valores iniciales: 60 Wh, Ahorro al 40% y Emergencia al 10%.</p>
-					</div>
-				</form>
-			</section>
 
 			<section class="card" aria-labelledby="h-chart">
 					<h2 id="h-chart">Generación y consumo</h2>

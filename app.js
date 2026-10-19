@@ -676,35 +676,6 @@ async function tick() {
 	S.hist = S.hist.slice(-40);
 	render();
 }
-$("parameters-form").addEventListener("submit", (event) => {
-	event.preventDefault();
-	const capacity = Number($("capacity-input").value);
-	const savingsThreshold = Number($("threshold-input").value);
-	const emergencyThreshold = Number($("emergency-threshold-input").value);
-	if (emergencyThreshold >= savingsThreshold) {
-		$("parameters-result").textContent =
-			"El umbral de emergencia debe ser menor que el umbral de ahorro.";
-		return;
-	}
-	S.cap = capacity;
-	S.autoThreshold = savingsThreshold;
-	S.emergencyThreshold = emergencyThreshold;
-	applyAutomaticMode(
-		S.solar + S.windW,
-		S.api ? S.cons : normalKitConsumption(),
-	);
-	if (!S.api) S.cons = totalKitConsumption();
-	$("parameters-result").textContent =
-		"Parámetros aplicados: " +
-		fmt(S.cap) +
-		" Wh · Ahorro por debajo de " +
-		S.autoThreshold +
-		"% · Emergencia en " +
-		S.emergencyThreshold +
-		"% o menos.";
-	addEvent("normal", "Se actualizaron los parámetros de batería y ahorro automático.");
-	render();
-});
 if (!RM)
 	document.querySelectorAll(".tilt").forEach((c) => {
 		c.addEventListener("pointermove", (e) => {

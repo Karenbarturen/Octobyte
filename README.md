@@ -15,7 +15,7 @@ Prototipo web para visualizar y monitorear kits de generación renovable en Copa
 - Gráfico de generación y consumo, historial de lecturas y estado energético de los kits.
 - Configuración de capacidad de batería y umbrales de ahorro y emergencia.
 
-Los valores iniciales son 60 Wh de capacidad, 40 % para ahorro y 10 % para emergencia. Los parámetros y el historial se conservan durante la sesión actual; al recargar la página vuelven a sus valores iniciales.
+La automatización utiliza valores internos predeterminados: capacidad de 60 Wh, ahorro por debajo del 40 % y emergencia al 10 % o menos. Estos valores no se modifican desde la interfaz.
 
 ## Requisitos
 - Un navegador moderno.

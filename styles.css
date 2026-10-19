@@ -912,37 +912,6 @@ h2 {
 	color: var(--mut);
 	white-space: nowrap;
 }
-.parameter-form {
-	display: grid;
-	gap: 0.9rem;
-	margin-top: 0.55rem;
-}
-.parameter-fields {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 1rem;
-}
-.parameter-field {
-	display: grid;
-	align-content: start;
-	gap: 0.4rem;
-}
-.parameter-form input {
-	width: 100%;
-}
-.parameter-actions {
-	display: grid;
-	grid-template-columns: minmax(12rem, 0.42fr) 1fr;
-	align-items: center;
-	gap: 1rem;
-}
-.parameter-actions .note {
-	margin: 0;
-}
-.parameter-form .action-button,
-.action-button {
-	margin-top: 0.4rem;
-}
 .metric {
 	padding: 0.9rem 1.1rem;
 }
@@ -1187,12 +1156,6 @@ footer {
 	}
 	.kit-model-label {
 		font-size: 10px;
-	}
-}
-@media (max-width: 700px) {
-	.parameter-fields,
-	.parameter-actions {
-		grid-template-columns: 1fr;
 	}
 }
 @media (max-width: 480px) {
