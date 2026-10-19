@@ -51,7 +51,9 @@ public class RecordService {
         Integer temperature = data.getTemperature() != null ? data.getTemperature() : random(15, 35);
         Integer voltage = data.getVoltage() != null ? data.getVoltage() : random(0, 24);
 
-        return persistRecord(operativo, lumens, windSpeed, temperature, voltage);
+        Total total = persistRecord(operativo, lumens, windSpeed, temperature, voltage);
+        total.setSource("real");
+        return total;
     }
 
     @Transactional
@@ -61,7 +63,7 @@ public class RecordService {
             throw new IllegalArgumentException("Modo operativo no encontrado: " + dto.getOperationMode());
         }
 
-        return persistRecord(
+        Total total = persistRecord(
                 operativo,
                 dto.getLumens(),
                 dto.getWindSpeed(),
@@ -74,6 +76,8 @@ public class RecordService {
                 dto.getConsumptionPower(),
                 dto.getAlertLevel()
         );
+        total.setSource("api");
+        return total;
     }
 
     @Transactional
@@ -84,7 +88,9 @@ public class RecordService {
         Integer temperature = random(15, 35);
         Integer voltage = random(10, 24);
 
-        return persistRecord(operativo, lumens, windSpeed, temperature, voltage);
+        Total total = persistRecord(operativo, lumens, windSpeed, temperature, voltage);
+        total.setSource("simulated");
+        return total;
     }
 
     private Total persistRecord(Operativo operativo, Integer lumens, Integer windSpeed,

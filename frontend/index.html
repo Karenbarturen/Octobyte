@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Sistema Energético Autónomo · Copahue</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Sora:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+			integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+			crossorigin=""
+		/>
+		<link rel="stylesheet" href="styles.css?v=20261016-18" />
+	</head>
+	<body>
+		<div id="mode-alert-overlay" class="mode-alert-overlay" hidden>
+			<section id="mode-alert" class="mode-alert mode-alert-normal" role="alert" aria-live="assertive" aria-labelledby="mode-alert-message">
+				<button id="mode-alert-close" class="mode-alert-close" type="button" aria-label="Cerrar alerta">×</button>
+				<div class="mode-alert-content"><p id="mode-alert-message"></p></div>
+			</section>
+		</div>
+		<div id="assistant-bot" class="assistant-bot assistant-normal" role="img" aria-label="Asistente energético siempre visible">
+			<svg class="bot-mascot" viewBox="0 0 100 110" focusable="false" aria-hidden="true">
+				<defs>
+					<linearGradient id="assistant-shell" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8db7ff"/><stop offset="1" stop-color="#536ff0"/></linearGradient>
+					<linearGradient id="assistant-body" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#668aff"/><stop offset="1" stop-color="#3855ca"/></linearGradient>
+				</defs>
+				<ellipse cx="50" cy="104" rx="28" ry="4" fill="#050e18" opacity=".55"/>
+				<path d="M33 70 23 83q-3 5 2 7l10-8m32-12 10 12q3 5-2 8L65 82" fill="url(#assistant-body)" stroke="#3049aa" stroke-width="2" stroke-linecap="round"/>
+				<path d="M36 80q14-6 28 0l4 18q-17 9-36 0Z" fill="url(#assistant-body)" stroke="#3049aa" stroke-width="2"/>
+				<path d="m40 96-2 7m22-7 2 7" stroke="#6d91ff" stroke-width="7" stroke-linecap="round"/>
+				<path d="M17 31q-4-12 7-18 2-11 17-9 10-8 22 0 15-2 18 12 12 8 5 21 3 12-8 17-7 13-21 10-13 7-23-1-15 2-18-11-11-7-4-21Z" fill="url(#assistant-shell)" stroke="#3959ce" stroke-width="2"/>
+				<path d="M27 28q1-8 10-8h30q9 0 9 9v18q0 9-10 9H38q-11 0-11-10Z" fill="#14254f" stroke="#273b82" stroke-width="2"/>
+				<path d="M38 37q4 5 8 0m9 0q4 5 8 0" fill="none" stroke="#72f2ef" stroke-width="3" stroke-linecap="round"/>
+				<path d="M44 72h12m-9 5 4-3 4 3" fill="none" stroke="#b9f5ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+		</div>
+		<div class="hero">
+			<div class="hin">
+				<div class="top">
+					<div>
+						
+						<h1>Energía autónoma para Copahue</h1>
+					</div>
+				</div>
+				<div class="hcards">
+					<section class="card tilt" aria-labelledby="h-batt">
+						<div class="battery-head">
+							<h2 id="h-batt">Batería</h2>
+							<span id="bstate" class="battery-state">Sin lectura</span>
+						</div>
+						<div class="pct"><span id="pct">--</span><small> %</small></div>
+						<div
+							class="battery-meter"
+							role="progressbar"
+							id="barwrap"
+							aria-label="Carga de batería"
+							aria-valuemin="0"
+							aria-valuemax="100"
+							aria-valuenow="0"
+						>
+							<div class="battery-body">
+								<div id="fill" style="width: 0"></div>
+								<i style="left: 10%"></i><i style="left: 20%"></i
+								><i style="left: 30%"></i><i style="left: 50%"></i>
+							</div>
+							<span class="battery-terminal" aria-hidden="true"></span>
+						</div>
+						<div class="ticks" aria-hidden="true">
+							<span style="left: 10%">10</span><span style="left: 20%">20</span
+							><span style="left: 30%">30</span
+							><span style="left: 50%">50%</span>
+						</div>
+						<div class="battery-summary">
+							<p><b>Energía disponible</b><span id="energyval">--</span></p>
+							<p><b>Autonomía estimada</b><span id="autoval">--</span></p>
+						</div>
+					</section>
+					<div id="alert" class="alert lv-normal" role="alert">
+						<div class="ic" id="aic" aria-hidden="true">✔</div>
+						<div class="alert-content">
+							<div class="alert-copy">
+								<h3 id="ah">Normal</h3>
+								<p id="ap">Esperando lecturas.</p>
+							</div>
+							<div class="alert-stats" aria-label="Resumen energético">
+								<div><span>Generación total</span><b id="agen">--</b></div>
+								<div><span>Consumo esencial</span><b id="acritical">--</b></div>
+								<div class="alert-wide">
+									<span>Cargas esenciales</span><b id="aloads">--</b>
+								</div>
+							</div>
+							<p class="alert-tip" id="atip"></p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<main>
+			<section class="card map-panel" aria-labelledby="h-map">
+				<div class="map-heading">
+					<div>
+						<h2 id="h-map">Mapa energético de Copahue</h2>
+						<p class="note">
+							Seleccioná un kit para ver sus datos y el modo automático.
+						</p>
+					</div>
+					<div class="map-summary">
+						<span class="map-count"><b>3</b> kits energéticos</span>
+					</div>
+				</div>
+				<div id="map-layout" class="map-layout">
+					<div class="map-canvas">
+						<div
+							id="real-map"
+							role="application"
+							aria-label="Mapa satelital de Copahue con tres kits de energía seleccionables"
+						></div>
+						<div id="map-fallback" hidden>
+							El mapa satelital necesita conexión a internet. Revisá la conexión
+							y volvé a cargar la página.
+						</div>
+					</div>
+					<aside
+						id="kit-panel"
+						class="kit-details"
+						hidden
+						aria-live="polite"
+						aria-labelledby="kit-title"
+					>
+						<div class="kit-panel-heading">
+							<span class="detail-kicker">MONITOREO DEL KIT</span
+							><button
+								id="kit-close"
+								type="button"
+								aria-label="Cerrar panel del kit"
+							>
+								×
+							</button>
+						</div>
+						<h3 id="kit-title">Kit seleccionado</h3>
+						<p id="kit-description" class="kit-description"></p>
+						<p id="kit-state-text" class="kit-state-text"></p>
+						<div class="kit-readings">
+							<div><span>Generación actual</span><b id="kit-power">--</b></div>
+							<div>
+								<span>Energía generada desde inicio</span
+								><b id="kit-generated">--</b>
+							</div>
+							<div>
+								<span>Consumo estimado del kit</span><b id="kit-consumption">--</b>
+							</div>
+							<div class="kit-storage">
+								<span>Energía almacenada</span><b id="kit-stored">--</b
+								><small id="kit-storage-note"></small>
+							</div>
+						</div>
+						<section class="kit-modes" aria-live="polite">
+							<h4 id="kit-mode-title">Modo operacional (Kit)</h4>
+							<div class="auto-mode">
+								<b id="kit-mode-value" class="auto-mode-value">Normal</b>
+								<span id="kit-mode-reason"></span>
+							</div>
+						</section>
+						<p id="kit-mode-note" class="map-note"></p>
+					</aside>
+				</div>
+				<div class="map-state-legend" aria-label="Estados de energía de los kits">
+					<span><i class="state-normal"></i>Normal</span>
+					<span><i class="state-warning"></i>Reserva intermedia</span>
+					<span><i class="state-critical"></i>Crítico</span>
+				</div>
+				<p class="map-note">
+					Imagen satelital de Esri. Las posiciones de los kits son de
+					demostración; se pueden ajustar con las coordenadas reales de
+					instalación.
+				</p>
+			</section>
+
+			<div class="grid5">
+				<section class="card tilt metric m-s">
+					<div class="h">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							aria-hidden="true"
+						>
+							<circle cx="12" cy="12" r="4" />
+							<path
+								d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"
+							/></svg
+						>Solar fotovoltaica
+					</div>
+					<b id="vsol">--</b><em id="vsolv"></em>
+				</section>
+				<section class="card tilt metric m-w">
+					<div class="h">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							aria-hidden="true"
+						>
+							<path
+								d="M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7"
+							/></svg
+						>Viento
+					</div>
+					<b id="vwind">--</b><em id="vwindp"></em>
+				</section>
+				<section class="card tilt metric m-t">
+					<div class="h">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							aria-hidden="true"
+						>
+							<path d="M14 14.5V5a2 2 0 0 0-4 0v9.5a4 4 0 1 0 4 0z" /></svg
+						>Termosolar (agua)
+					</div>
+					<b id="vtemp">--</b><em id="ttxt"></em>
+				</section>
+				<section class="card tilt metric m-c">
+					<div class="h">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<path d="M13 2L4 14h7l-1 8 9-12h-7z" /></svg
+						>Consumo
+					</div>
+					<b id="vcons">--</b><em>Carga actual</em>
+				</section>
+				<section class="card tilt metric m-b">
+					<div class="h">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							aria-hidden="true"
+						>
+							<rect x="2" y="7" width="17" height="10" rx="2" />
+							<path d="M22 11v2" /></svg
+						>Balance eléctrico
+					</div>
+					<b id="vbal">--</b><em id="btxt"></em>
+				</section>
+			</div>
+
+			<section class="card parameter-card" aria-labelledby="h-parameters">
+				<h2 id="h-parameters">Configuración de parámetros</h2>
+				<form id="parameters-form" class="parameter-form">
+					<div class="parameter-fields">
+						<div class="parameter-field">
+							<label for="capacity-input">Capacidad de batería (Wh)</label>
+							<input id="capacity-input" type="number" min="1" max="100000" step="1" value="60" required />
+						</div>
+						<div class="parameter-field">
+							<label for="threshold-input">Umbral para activar ahorro (%)</label>
+							<input id="threshold-input" type="number" min="0" max="100" step="1" value="40" required />
+						</div>
+						<div class="parameter-field">
+							<label for="emergency-threshold-input">Umbral para activar emergencia (%)</label>
+							<input id="emergency-threshold-input" type="number" min="0" max="99" step="1" value="10" required />
+						</div>
+					</div>
+					<div class="parameter-actions">
+						<button class="action-button" type="submit">Guardar parámetros</button>
+						<p id="parameters-result" class="note" aria-live="polite">Valores iniciales: 60 Wh, Ahorro al 40% y Emergencia al 10%.</p>
+					</div>
+				</form>
+			</section>
+
+			<section class="card" aria-labelledby="h-chart">
+					<h2 id="h-chart">Generación y consumo</h2>
+					<svg
+						class="chart"
+						id="chart"
+						viewBox="0 0 600 200"
+						role="img"
+						aria-label="Gráfico de generación y consumo"
+					></svg>
+					<div class="legend">
+						<span
+							><svg viewBox="0 0 34 10" aria-hidden="true">
+								<line
+									x1="0"
+									y1="5"
+									x2="34"
+									y2="5"
+									stroke="#ffc94d"
+									stroke-width="4"
+								/>
+							</svg>
+							Generación eléctrica</span
+						>
+						<span
+							><svg viewBox="0 0 34 10" aria-hidden="true">
+								<line
+									x1="0"
+									y1="5"
+									x2="34"
+									y2="5"
+									stroke="#eef5f8"
+									stroke-width="3"
+									stroke-dasharray="6 4"
+								/>
+							</svg>
+							Consumo</span
+						>
+					</div>
+					<p class="note" id="chartsum"></p>
+			</section>
+
+			<section class="card" aria-labelledby="h-ev">
+				<h2 id="h-ev">Eventos y alertas</h2>
+				<ul class="ev" id="events" aria-live="polite"></ul>
+			</section>
+
+			<section class="card" id="proto" hidden aria-labelledby="h-proto">
+				<h2 id="h-proto">Nuestro prototipo</h2>
+				<div class="gal">
+					<figure>
+						<img
+							src="img/prototipo-1.jpg"
+							alt="Circuito del Grupo 3 con ESP32 y panel solar"
+							onload="document.getElementById('proto').hidden = false"
+							onerror="this.closest('figure').remove()"
+						/>
+						<figcaption>Circuito base con ESP32</figcaption>
+					</figure>
+					<figure>
+						<img
+							src="img/prototipo-2.jpg"
+							alt="Panel solar del Grupo 3 en pruebas"
+							onload="document.getElementById('proto').hidden = false"
+							onerror="this.closest('figure').remove()"
+						/>
+						<figcaption>Prueba del panel solar</figcaption>
+					</figure>
+					<figure>
+						<img
+							src="img/prototipo-3.jpg"
+							alt="Anemómetro del Grupo 3"
+							onload="document.getElementById('proto').hidden = false"
+							onerror="this.closest('figure').remove()"
+						/>
+						<figcaption>Anemómetro</figcaption>
+					</figure>
+				</div>
+			</section>
+
+			<div class="extras-grid">
+				<section class="card extra-card" aria-labelledby="h-connectivity">
+					<h2 id="h-connectivity">Conectividad y energía</h2>
+					<dl class="info-pairs">
+						<div><dt>Conexión</dt><dd id="connection-status">--</dd></div>
+						<div><dt>Fuente de datos</dt><dd id="source-status">--</dd></div>
+						<div><dt>Última lectura</dt><dd id="reading-time">--</dd></div>
+						<div><dt>Batería</dt><dd id="energy-status">--</dd></div>
+					</dl>
+				</section>
+				<section class="card extra-card" aria-labelledby="h-history">
+					<h2 id="h-history">Historial de registros</h2>
+					<p class="note">Últimas lecturas de generación y consumo de esta sesión.</p>
+					<ol id="history-list" class="history-list" aria-live="polite"></ol>
+				</section>
+			</div>
+		</main>
+		<footer>
+			Imagen de portada: referencia generada digitalmente del documento común de
+			Navathon III; no es una fotografía documental.
+		</footer>
+
+		<script
+			src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+			crossorigin=""
+		></script>
+		<script src="app.js?v=20261016-15"></script>
+	</body>
+</html>

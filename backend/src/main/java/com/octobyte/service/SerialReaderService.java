@@ -71,6 +71,7 @@ public class SerialReaderService {
         serialPort.setNumDataBits(8);
         serialPort.setNumStopBits(1);
         serialPort.setParity(SerialPort.NO_PARITY);
+        serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 0, 0);
 
         if (!serialPort.openPort()) {
             log.error("No se pudo abrir el puerto serial {}", serialPort.getSystemPortName());
@@ -79,27 +80,23 @@ public class SerialReaderService {
 
         log.info("Puerto serial abierto: {} @ {} baudios", serialPort.getSystemPortName(), baudRate);
 
-        try {
+        try (InputStream in = serialPort.getInputStream()) {
             byte[] data = new byte[1024];
             while (!Thread.currentThread().isInterrupted()) {
-                int available = serialPort.bytesAvailable();
-                if (available > 0) {
-                    int len = serialPort.readBytes(data, Math.min(data.length, available));
-                    if (len > 0) {
-                        String text = new String(data, 0, len, StandardCharsets.UTF_8);
-                        synchronized (buffer) {
-                            buffer.append(text);
-                            while (Esp32Parser.isCompleteBlock(buffer)) {
-                                String block = Esp32Parser.extractBlock(buffer);
-                                if (block != null) {
-                                    ParsedData parsed = Esp32Parser.parse(block);
-                                    recordService.createFromEsp32(parsed);
-                                }
+                int len = in.read(data);
+                if (len > 0) {
+                    log.debug("Bytes recibidos del puerto serial: {}", len);
+                    String text = new String(data, 0, len, StandardCharsets.UTF_8);
+                    synchronized (buffer) {
+                        buffer.append(text);
+                        while (Esp32Parser.isCompleteBlock(buffer)) {
+                            String block = Esp32Parser.extractBlock(buffer);
+                            if (block != null) {
+                                ParsedData parsed = Esp32Parser.parse(block);
+                                recordService.createFromEsp32(parsed);
                             }
                         }
                     }
-                } else {
-                    Thread.sleep(50);
                 }
             }
         } catch (Exception e) {

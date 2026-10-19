@@ -40,9 +40,10 @@ public class StatusBuilder {
             quality.put(key, data.get(key) != null ? "valid" : "invalid");
         }
 
+        String source = total.getSource();
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("environment", "test");
-        metadata.put("source_type", "simulated");
+        metadata.put("source_type", source != null ? source : "real");
         metadata.put("alert_evaluated", true);
         metadata.put("clock_synced", true);
         metadata.put("units", units);

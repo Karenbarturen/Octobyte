@@ -24,6 +24,9 @@ public class Total {
     @JoinColumn(name = "id_medicion_total", nullable = false)
     private MedicionTotal medicionTotal;
 
+    @Transient
+    private String source;
+
     public Total() {}
 
     public Integer getIdTotal() {
@@ -56,5 +59,13 @@ public class Total {
 
     public void setMedicionTotal(MedicionTotal medicionTotal) {
         this.medicionTotal = medicionTotal;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }
