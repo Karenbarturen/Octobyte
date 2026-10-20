@@ -8,6 +8,7 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const COLORBLIND_STORAGE_KEY = "sistema-energetico-modo-daltonico";
 let modeAlertTimeout = 0;
 let assistantFlightAnimation = null;
 const LEVELS = {
@@ -635,7 +636,7 @@ function drawChart() {
 			(m.l - 6) +
 			"' y='" +
 			(y(v) + 4) +
-			"' font-size='11' text-anchor='end' fill='#b0c3cd'>" +
+			"' font-size='11' text-anchor='end' fill='var(--mut)'>" +
 			Math.round(v) +
 			" W</text>";
 	}
@@ -643,18 +644,18 @@ function drawChart() {
 		g +
 		"<polyline points='" +
 		pts("g") +
-		"' fill='none' stroke='#ffc94d' stroke-width='4'/><polyline points='" +
+		"' fill='none' stroke='var(--gold)' stroke-width='4'/><polyline points='" +
 		pts("c") +
-		"' fill='none' stroke='#eef5f8' stroke-width='3' stroke-dasharray='8 5'/>" +
+		"' fill='none' stroke='var(--ink)' stroke-width='3' stroke-dasharray='8 5'/>" +
 		"<text x='" +
 		m.l +
 		"' y='" +
 		(Ht - 4) +
-		"' font-size='11' fill='#b0c3cd'>más antiguo</text><text x='" +
+		"' font-size='11' fill='var(--mut)'>más antiguo</text><text x='" +
 		(W - m.r) +
 		"' y='" +
 		(Ht - 4) +
-		"' font-size='11' text-anchor='end' fill='#b0c3cd'>ahora</text>";
+		"' font-size='11' text-anchor='end' fill='var(--mut)'>ahora</text>";
 	const l = H[H.length - 1];
 	$("chartsum").textContent =
 		"Ahora: generación " + fmt(l.g) + " W, consumo " + fmt(l.c) + " W.";
@@ -676,6 +677,32 @@ async function tick() {
 	S.hist = S.hist.slice(-40);
 	render();
 }
+function initColorblindMode() {
+	const toggle = $("colorblind-toggle");
+	let enabled = false;
+	try {
+		enabled = localStorage.getItem(COLORBLIND_STORAGE_KEY) === "true";
+	} catch (error) {
+		// La opción sigue disponible en la sesión si el almacenamiento está bloqueado.
+	}
+	const update = () => {
+		document.body.classList.toggle("colorblind-mode", enabled);
+		toggle.setAttribute("aria-pressed", String(enabled));
+		toggle.innerHTML =
+			'<span aria-hidden="true">◉</span> Modo daltónico: ' +
+			(enabled ? "activado" : "desactivado");
+	};
+	toggle.addEventListener("click", () => {
+		enabled = !enabled;
+		update();
+		try {
+			localStorage.setItem(COLORBLIND_STORAGE_KEY, String(enabled));
+		} catch (error) {
+			// No interrumpir el cambio visual si el almacenamiento está bloqueado.
+		}
+	});
+	update();
+}
 if (!RM)
 	document.querySelectorAll(".tilt").forEach((c) => {
 		c.addEventListener("pointermove", (e) => {
@@ -692,6 +719,7 @@ if (!RM)
 		c.addEventListener("pointerleave", () => (c.style.transform = ""));
 	});
 addEvent("normal", "Panel iniciado con datos simulados.");
+initColorblindMode();
 initEnergyMap();
 tick();
 setInterval(tick, 3000);
